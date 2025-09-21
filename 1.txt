@@ -1,0 +1,51 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define N 100 // Спросите почему одномерный? Потомучто malloc читает массив как одномерный двух мерного нет 
+int main() {
+    int i, j, r, c;
+    int *a, *b, *f;
+
+   // выделение памяти под массив 
+    a = (int*)malloc(N * N * sizeof(int));
+    b = (int*)malloc(N * N * sizeof(int));
+    f = (int*)malloc(N * N * sizeof(int));
+
+    srand(time(NULL));
+    clock_t start = clock(); // начло отсчета 
+
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
+            a[i * N + j] = rand() % 10; // [i * N + J] - по формеле как константа 
+            b[i * N + j] = rand() % 10;
+            f[i * N + j] = 0;
+        }
+    }
+
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
+            c = 0;
+            for (r = 0; r < N; r++) {
+                c += a[i * N + r] * b[r * N + j];
+            }
+            f[i * N + j] = c;
+        }
+    }
+    clock_t end = clock(); // куонец отсчета 
+    double time = (double)(end - start) / CLOCKS_PER_SEC; // CLOCKS_PER_SEC - константа показывает сколько тиков в секунду  
+    printf("10 el:\n"); // мматрица 10 на 10, в задание есть 10000 на 10000, считать будешь вечность 
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j < 10; j++) {
+            printf("%d ", f[i * N + j]);
+        }
+        printf("\n");
+    }
+    printf("time: %.10f", time);
+
+    free(a);
+    free(b);
+    free(f);
+
+    return 0;
+}

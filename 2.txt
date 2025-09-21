@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <windows.h>
+
+double Shell(int arr[], int n) {
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i];
+            int j;
+            for (j = i; j >= gap && arr[j - gap] > temp; j -= gap) {
+                arr[j] = arr[j - gap];
+            }
+            arr[j] = temp;
+        }
+    }
+    QueryPerformanceCounter(&end);
+    double time_spent = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+    return time_spent;
+}
+
+void quick_sort(int arr[], int low, int high) {
+    if (low >= high) return;
+
+    int pivot = arr[high];
+    int i = low - 1;
+
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+
+    i++;
+    int temp = arr[i];
+    arr[i] = arr[high];
+    arr[high] = temp;
+
+    quick_sort(arr, low, i - 1);
+    quick_sort(arr, i + 1, high);
+}
+
+double quick(int arr[], int low, int high) {
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+
+    quick_sort(arr, low, high);
+
+    QueryPerformanceCounter(&end);
+    return (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+}
+
+int copy(int arr[], int temp[]) {
+    int n = sizeof(arr) / sizeof(arr[0]);
+    for (int i = 0; i < n; i++) {
+        temp[i] = arr[i];
+    }
+}
+int main() {
+    system("chcp 1251");
+    system("cls");
+    srand(time(NULL));
+    int inc[100], dec[100], random[100], korn[100], temp[100];
+    double timed;
+    for (int i = 0; i < 100; i++) {
+        inc[i] = i + 1;
+        dec[i] = 100 - i;
+        random[i] = rand() % 100;
+        if (i < 48) {
+            korn[i] = i + 1;
+        }
+        else {
+            korn[i] = 100 - i;
+        }
+    }
+    int size1 = sizeof(inc) / sizeof(inc[0]);
+    int size2 = sizeof(dec) / sizeof(dec[0]);
+    int size3 = sizeof(random) / sizeof(random[0]);
+    int size4 = sizeof(korn) / sizeof(korn[0]);
+    int size5 = sizeof(temp) / sizeof(temp[0]);
+    copy(random, temp);
+    timed = Shell(random, size3);
+    printf("Время работы сортировки Шелла на случайном массиве: %lf\n", timed);
+    copy(temp, random);
+    timed = quick(random, 0, size3 - 1);
+    printf("Время работы быстрой сортировки на случайном массиве: %lf\n", timed);
+    copy(inc, random);
+    timed = Shell(inc, size1);
+    printf("Время работы сортировки Шелла на возрастающем массиве: %lf\n", timed);
+    copy(temp, inc);
+    timed = quick(inc, 0, size1 - 1);
+    printf("Время работы быстрой сортировки на возрастающем массиве: %lf\n", timed);
+    copy(dec, temp);
+    timed = Shell(dec, size2);
+    printf("Время работы сортировки Шелла на убывающем массиве: %lf\n", timed);
+    copy(temp, dec);
+    timed = quick(dec, 0, size2 - 1);
+    printf("Время работы быстрой сортировки на убывающем массиве: %lf\n", timed);
+    copy(korn, temp);
+    timed = Shell(korn, size4);
+    printf("Время работы сортировки Шелла на угловатом массиве: %lf\n", timed);
+    copy(temp, korn);
+    timed = quick(korn, 0, size4 - 1);
+    printf("Время работы быстрой сортировки на угловатом массиве: %lf\n", timed);
+}
