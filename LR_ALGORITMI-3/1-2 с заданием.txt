@@ -1,0 +1,346 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define _CRT_SECURE_NO_WARNINGS
+
+struct node {
+    char name[256];
+    int priority;
+    struct node* next;
+};
+
+struct node* head = NULL;
+struct node* last = NULL;
+
+struct node* get_struct() {
+    struct node* p = NULL;
+    char name[256];
+    int priority;
+
+    if ((p = (struct node*)malloc(sizeof(struct node))) == NULL) {
+        printf("Ошибка при распределении памяти\n");
+        return 1;
+    }
+
+    printf("Введите имя человека: ");
+    scanf("%255s", name);
+    if (strlen(name) == 0) {
+        printf("Запись не была произведена\n");
+        free(p);
+        return NULL;
+    }
+    strcpy(p->name, name);
+
+    printf("Введите приоритет (целое число, чем меньше - тем выше приоритет): ");
+    if (scanf("%d", &priority) != 1) {
+        printf("Ошибка ввода приоритета\n");
+        free(p);
+        return NULL;
+    }
+    p->priority = priority;
+
+    p->next = NULL;
+
+    return p;
+}
+
+void add_person() {
+    struct node* p = NULL;
+    struct node* current = NULL;
+    struct node* prev = NULL;
+
+    p = get_struct();
+    if (p == NULL) {
+        return;
+    }
+
+    if (head == NULL) {
+        head = p;
+        last = p;
+        printf("Человек '%s' с приоритетом %d добавлен в очередь\n", p->name, p->priority);
+        return;
+    }
+
+    current = head;
+    prev = NULL;
+
+    while (current != NULL && current->priority <= p->priority) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev == NULL) {
+        p->next = head;
+        head = p;
+    }
+    else if (current == NULL) {
+        last->next = p;
+        last = p;
+    }
+    else {
+        prev->next = p;
+        p->next = current;
+    }
+
+    printf("Человек '%s' с приоритетом %d добавлен в очередь\n", p->name, p->priority);
+}
+
+void display_queue() {
+    struct node* current = head;
+
+    if (head == NULL) {
+        printf("Очередь пуста\n");
+        return;
+    }
+
+    printf("\n Текущее состояние очереди \n");
+    int position = 1;
+    while (current != NULL) {
+        printf("%d. %s (приоритет: %d)\n", position, current->name, current->priority);
+        current = current->next;
+        position++;
+    }
+}
+
+void remove_by_position() {
+    if (head == NULL) {
+        printf("Очередь пуста\n");
+        return;
+    }
+
+    int position;
+    display_queue();
+    printf("Введите номер человека для удаления: ");
+
+    if (scanf("%d", &position) != 1 || position < 1) {
+        printf("Неверный номер\n");
+        return;
+    }
+
+    struct node* current = head;
+    struct node* prev = NULL;
+    int current_pos = 1;
+
+    while (current != NULL && current_pos < position) {
+        prev = current;
+        current = current->next;
+        current_pos++;
+    }
+
+    if (current == NULL) {
+        printf("Человек с номером %d не найден\n", position);
+        return;
+    }
+
+    if (prev == NULL) {
+        head = current->next;
+        if (head == NULL) {
+            last = NULL;
+        }
+    }
+    else {
+        prev->next = current->next;
+        if (current->next == NULL) {
+            last = prev;
+        }
+    }
+
+    printf("Человек '%s' (приоритет: %d) удален из очереди\n", current->name, current->priority);
+    free(current);
+}
+
+void remove_by_priority() {
+    if (head == NULL) {
+        printf("Очередь пуста\n");
+        return;
+    }
+
+    int priority_to_remove;
+    printf("Введите приоритет для удаления: ");
+
+    if (scanf("%d", &priority_to_remove) != 1) {
+        printf("Ошибка ввода приоритета\n");
+        return;
+    }
+
+    struct node* current = head;
+    struct node* prev = NULL;
+    struct node* temp;
+    int count = 0;
+
+    while (current != NULL) {
+        if (current->priority == priority_to_remove) {
+            if (prev == NULL) {
+                head = current->next;
+                temp = current;
+                current = current->next;
+                printf("Удален человек '%s' с приоритетом %d\n", temp->name, temp->priority);
+                free(temp);
+                count++;
+
+                if (head == NULL) {
+                    last = NULL;
+                }
+            }
+            else {
+                prev->next = current->next;
+                temp = current;
+                current = current->next;
+                printf("Удален человек '%s' с приоритетом %d\n", temp->name, temp->priority);
+                free(temp);
+                count++;
+
+                if (prev->next == NULL) {
+                    last = prev;
+                }
+            }
+        }
+        else {
+            prev = current;
+            current = current->next;
+        }
+    }
+
+    if (count == 0) {
+        printf("Люди с приоритетом %d не найдены\n", priority_to_remove);
+    }
+    else {
+        printf("Удалено %d человек с приоритетом %d\n", count, priority_to_remove);
+    }
+}
+
+void remove_by_name_content() {
+    if (head == NULL) {
+        printf("Очередь пуста\n");
+        return;
+    }
+
+    char search_string[256];
+    printf("Введите строку для поиска в именах: ");
+    scanf("%255s", search_string);
+
+    struct node* current = head;
+    struct node* prev = NULL;
+    struct node* temp;
+    int count = 0;
+
+    while (current != NULL) {
+        if (strstr(current->name, search_string) != NULL) {
+            if (prev == NULL) {
+                head = current->next;
+                temp = current;
+                current = current->next;
+                printf("Удален человек '%s' с приоритетом %d (найдено '%s')\n",
+                    temp->name, temp->priority, search_string);
+                free(temp);
+                count++;
+
+                if (head == NULL) {
+                    last = NULL;
+                }
+            }
+            else {
+                prev->next = current->next;
+                temp = current;
+                current = current->next;
+                printf("Удален человек '%s' с приоритетом %d (найдено '%s')\n",
+                    temp->name, temp->priority, search_string);
+                free(temp);
+                count++;
+
+                if (prev->next == NULL) {
+                    last = prev;
+                }
+            }
+        }
+        else {
+            prev = current;
+            current = current->next;
+        }
+    }
+
+    if (count == 0) {
+        printf("Люди с содержанием '%s' в имени не найдены\n", search_string);
+    }
+    else {
+        printf("Удалено %d человек с содержанием '%s' в имени\n", count, search_string);
+    }
+}
+
+void clear_queue() {
+    struct node* current = head;
+    struct node* next;
+
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+
+    head = NULL;
+    last = NULL;
+    printf("Очередь очищена\n");
+}
+
+void menu(void) {
+    int choice;
+
+    while (1) {
+        printf("\n ПРИОРИТЕТНАЯ ОЧЕРЕДЬ ЛЮДЕЙ \n");
+        printf("1. Добавить человека в очередь\n");
+        printf("2. Просмотреть очередь\n");
+        printf("3. Удалить человека по номеру\n");
+        printf("4. Удалить по приоритету\n");
+        printf("5. Удалить по содержимому имени\n");
+        printf("6. Очистить очередь\n");
+        printf("0. Выход\n");
+        printf("Выберите действие: ");
+
+        if (scanf("%d", &choice) != 1) {
+            printf("Ошибка ввода\n");
+            while (getchar() != '\n');
+            continue;
+        }
+
+        switch (choice) {
+        case 1:
+            add_person();
+            break;
+
+        case 2:
+            display_queue();
+            break;
+
+        case 3:
+            remove_by_position();
+            break;
+
+        case 4:
+            remove_by_priority();
+            break;
+
+        case 5:
+            remove_by_name_content();
+            break;
+
+        case 6:
+            clear_queue();
+            break;
+
+        case 0:
+            clear_queue();
+            printf("Выход из программы\n");
+            return;
+
+        default:
+            printf("Неверный выбор\n");
+        }
+    }
+}
+
+int main(void) {
+    system("chcp 1251");
+    system("cls");
+    menu();
+    return 0;
+}

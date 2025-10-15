@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+#include <locale.h>
+
+struct node {
+    char inf[256];
+    struct node* next;
+};
+
+struct node* head = NULL;
+
+int isEmpty() {
+    return head == NULL;
+}
+
+void push(char* value) {
+    struct node* p = (struct node*)malloc(sizeof(struct node));
+    if (!p) {
+        printf("ОШИБКА: не удалось выделить память\n");
+        exit(1);
+    }
+    strcpy_s(p->inf, sizeof(p->inf), value);
+    p->next = head;
+    head = p;
+    printf("Добавлен в стек: %s\n", value);
+}
+
+char* pop() {
+    if (isEmpty()) {
+        printf("Стек пуст\n");
+        return NULL;
+    }
+    struct node* temp = head;
+    head = head->next;
+    char* value = _strdup(temp->inf); 
+    free(temp);
+    return value;
+}
+
+char* peek() {
+    if (isEmpty()) {
+        printf("Стек пуст\n");
+        return NULL;
+    }
+    return head->inf;
+}
+
+void printStack() {
+    struct node* p = head;
+    if (isEmpty()) {
+        printf("Стек пуст\n");
+        return;
+    }
+    printf("Содержимое стека (верх -> низ):\n");
+    while (p) {
+        printf("%s\n", p->inf);
+        p = p->next;
+    }
+}
+
+void clearStack() {
+    while (!isEmpty()) {
+        struct node* tmp = head;
+        head = head->next;
+        free(tmp);
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    int choice;
+    char value[256];
+
+    while (1) {
+        printf("\nМеню:\n");
+        printf("1. Добавить элемент\n");
+        printf("2. Удалить элемент\n");
+        printf("3. Посмотреть верхний элемент\n");
+        printf("4. Вывести стек\n");
+        printf("5. Выход\n");
+        printf("Номер: ");
+        scanf_s("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            printf("Введите значение: ");
+            scanf_s("%255s", value, (unsigned)_countof(value));
+            push(value);
+            break;
+        case 2: {
+            char* res = pop();
+            if (res) {
+                printf("Удалён элемент: %s\n", res);
+                free(res);
+            }
+            break;
+        }
+        case 3:
+            if (peek()) {
+                printf("Верхний элемент стека: %s\n", peek());
+            }
+            break;
+        case 4:
+            printStack();
+            break;
+        case 5:
+            clearStack();
+            printf("Выход из программы\n");
+            return 0;
+        default:
+            printf("Неверный выбор\n");
+        }
+    }
+} 
